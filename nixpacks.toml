@@ -1,0 +1,8 @@
+﻿[phases.setup]
+nixPkgs = ["python312", "nodejs_20", "git"]
+
+[phases.install]
+cmds = ["pip install --no-cache-dir -r requirements.txt"]
+
+[start]
+cmd = "python main.py"
