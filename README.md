@@ -129,4 +129,6 @@ There is **no sandboxing**. Child bots run as the same OS user as the manager, w
 
 ## License
 
-MIT
+## License
+
+MIT — see [LICENSE](LICENSE) for details.
