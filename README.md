@@ -53,7 +53,7 @@ Each child bot runs as a subprocess with `start_new_session=True` (POSIX) or `CR
 Requires Python 3.11 or 3.12.
 
 ```bash
-git clone https://github.com/<you>/bot-manager.git
+git clone https://github.com/boycisco/bot-manager.git
 cd bot-manager
 python -m venv .venv
 # Windows:  .venv\Scripts\activate
