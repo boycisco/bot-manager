@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import functools
 import shutil
+import logging
 import time
 from html import escape
 
@@ -294,17 +295,22 @@ async def got_zip(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for p in record.path.iterdir()
         if p.name not in {".venv", "node_modules", "__pycache__"}
     )[:15]
-    env_keys = ", ".join(f"`{k}`" for k in record.env) or "_none_"
+    env_keys = ", ".join(record.env.keys()) or "none"
+    files_str = ", ".join(files) or "—"
+
+    def h(value: object) -> str:
+        return escape(str(value))
 
     await status.edit_text(
-        f"✅ *{name}* deployed\n\n"
-        f"*Language:* {record.language}\n"
-        f"*Command:*  `{record.command}`\n"
-        f"*Env keys:* {env_keys}\n"
-        f"*Files:* {', '.join(files) or '—'}\n\n"
-        f"_{report}_\n_{start_msg}_\n\n"
-        f"Watch it with `/logs {name}`.",
-        parse_mode=ParseMode.MARKDOWN,
+        f"✅ <b>{h(name)}</b> deployed\n\n"
+        f"<b>Language:</b> {h(record.language)}\n"
+        f"<b>Command:</b> <code>{h(record.command)}</code>\n"
+        f"<b>Env keys:</b> {h(env_keys)}\n"
+        f"<b>Files:</b> {h(files_str)}\n\n"
+        f"<i>{h(report)}</i>\n"
+        f"<i>{h(start_msg)}</i>\n\n"
+        f"Watch it with <code>/logs {h(name)}</code>.",
+        parse_mode=ParseMode.HTML,
     )
     context.user_data.pop("draft", None)
     return ConversationHandler.END
@@ -529,6 +535,8 @@ def build_application(storage: Storage, processes: ProcessManager) -> Applicatio
         per_user=True,
         per_chat=True,
         allow_reentry=True,
+        allow_reentry=True,
+        per_message=False,
     )
 
     app.add_handler(CommandHandler("start", cmd_start))
@@ -541,5 +549,20 @@ def build_application(storage: Storage, processes: ProcessManager) -> Applicatio
     app.add_handler(CommandHandler("restart", cmd_restart))
     app.add_handler(CommandHandler("delete", cmd_delete))
     app.add_handler(CallbackQueryHandler(on_delete_callback, pattern=r"^del:"))
+
+    async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+        # Log the full traceback for us, and try to tell the user something went wrong.
+        logging.getLogger(__name__).exception(
+            "handler error", exc_info=context.error
+        )
+        if isinstance(update, Update) and update.effective_message:
+            try:
+                await update.effective_message.reply_text(
+                    "❌ Something went wrong handling that. Check the logs."
+                )
+            except Exception:
+                pass
+
+    app.add_error_handler(on_error)
 
     return app

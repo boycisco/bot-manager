@@ -12,9 +12,12 @@ from manager.storage import Storage
 
 def main() -> None:
     logging.basicConfig(
-        level=logging.WARNING,
+        level=logging.INFO,
         format="%(asctime)s %(name)s %(levelname)s: %(message)s",
     )
+    # Telegram/HTTP info lines are noisy and can leak the bot token in URLs.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
 
     config.ensure_dirs()
     config.validate()
