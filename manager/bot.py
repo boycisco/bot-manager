@@ -535,7 +535,6 @@ def build_application(storage: Storage, processes: ProcessManager) -> Applicatio
         per_user=True,
         per_chat=True,
         allow_reentry=True,
-        allow_reentry=True,
         per_message=False,
     )
 
